@@ -34,7 +34,6 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
         }
     }
 }
-
 int main(int argc, char** argv) {
     TGAImage image(100, 100, TGAImage::RGB);
     for (int i=0; i<1000000; i++) {

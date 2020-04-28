@@ -53,7 +53,7 @@ void triangle(int t0[], int t1[], int t2[], TGAImage &image, TGAColor color) {
         int B = t0[0] + (t1[0] - t0[0]) * beta;
         if (A>B) std::swap(A, B);
         for (int j=A; j<=B; j++) {
-            image.set(j, y, color); // attention, due to int casts t0.y+i != A.y
+            image.set(j, y, color);
         }
     }
     for (int y = t1[1]; y < t2[1]; y++){
@@ -64,7 +64,7 @@ void triangle(int t0[], int t1[], int t2[], TGAImage &image, TGAColor color) {
         int B = t1[0] + (t2[0] - t1[0]) * beta;
         if (A>B) std::swap(A, B);
         for (int j=A; j<=B; j++) {
-            image.set(j, y, color); // attention, due to int casts t0.y+i != A.y
+            image.set(j, y, color);
         }
     }
 }

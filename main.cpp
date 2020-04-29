@@ -54,6 +54,7 @@ float* barycentric(float co[3],int pts[3][2], int P[2]) {
     }
     return co;
 }
+
 void triangle(int pts[3][2], TGAImage &image, TGAColor color) {
     int bboxmin[2] = {image.get_width()-1,  image.get_height()-1};
     int bboxmax[2] = {0, 0};

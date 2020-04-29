@@ -39,22 +39,38 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     }
 }
 
-void triangle(int t0[], int t1[], int t2[], TGAImage &image, TGAColor color) {
-    // sort the vertices, t0, t1, t2 lower−to−upper (bubblesort yay!)
-    if(t0[1]>t1[1]) std::swap(t0, t1);
-    if(t0[1]>t2[1]) std::swap(t0, t2);
-    if(t1[1]>t2[1]) std::swap(t1, t2);
-    int total_height = t2[1]-t0[1];
-    for (int i = 0; i < total_height; i++){
-        bool second_half = i > t1[1] - t0[1] || t1[1] == t0[1];
-        int segment_height = second_half ? t2[1] - t1[1] : t1[1] - t0[1];
-        float alpha = (float)i / total_height;
-        float beta = (float)(i - (second_half ? t1[1] - t0[1] : 0)) / segment_height;
-        int A = t0[0] + (t2[0] - t0[0]) * alpha;
-        int B = second_half ? t1[0] + (t2[0] - t1[0]) * beta : t0[0] + (t1[0]-t0[0])*beta;
-        if (A>B) std::swap(A, B);
-        for (int j=A; j<=B; j++) {
-            image.set(j, t0[1]+i, color);
+float* barycentric(float co[3],int pts[3][2], int P[2]) {
+    float u[3] = {(float)((pts[1][0]-pts[0][0])*(pts[0][1]-P[1])-(pts[1][1]-pts[0][1])*(pts[0][0]-P[0])),
+                  (float)((pts[0][0]-P[0])*(pts[2][1]-pts[0][1])-(pts[2][0]-pts[0][0])*(pts[0][1]-P[1])),
+                  (float)((pts[2][0]-pts[0][0])*(pts[1][1]-pts[0][1])-(pts[2][1]-pts[0][1])*(pts[1][0]-pts[0][0]))};
+    if (std::abs(u[2])<1) {
+        co[0] = -1;
+        co[1] = 1;
+        co[2] = 1;
+    }else{
+        co[0] = 1.f - (u[0] + u[1]) / u[2];
+        co[1] = u[1] / u[2];
+        co[2] = u[0] / u[2];
+    }
+    return co;
+}
+void triangle(int pts[3][2], TGAImage &image, TGAColor color) {
+    int bboxmin[2] = {image.get_width()-1,  image.get_height()-1};
+    int bboxmax[2] = {0, 0};
+    int clamp[2] = {image.get_width() - 1, image.get_height() - 1};
+    for (int i=0; i<3; i++) {
+        for (int j=0; j<2; j++) {
+            bboxmin[j] = std::max(0,        std::min(bboxmin[j], pts[i][j]));
+            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+        }
+    }
+    int P[2];
+    for (P[0]=bboxmin[0]; P[0]<=bboxmax[0]; P[0]++) {
+        for (P[1]=bboxmin[1]; P[1]<=bboxmax[1]; P[1]++) {
+            float co[3];
+            float bc_screen[3] = {barycentric(co,pts, P)[0],barycentric(co,pts, P)[1],barycentric(co,pts, P)[2]};
+            if (bc_screen[0]<0 || bc_screen[1]<0 || bc_screen[2]<0) continue;
+            image.set(P[0], P[1], color);
         }
     }
 }
@@ -66,9 +82,9 @@ int main(int argc, char** argv) {
     int t1[3][2] = {{180, 50},  {150, 1},   {70, 180}};
     int t2[3][2] = {{180, 150}, {120, 160}, {130, 180}};
 
-    triangle(t0[0], t0[1], t0[2], image, red);
-    triangle(t1[0], t1[1], t1[2], image, white);
-    triangle(t2[0], t2[1], t2[2], image, green);
+    triangle(t0, image, red);
+    triangle(t1, image, white);
+    triangle(t2, image, green);
 
     image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
     image.write_tga_file("output.tga");

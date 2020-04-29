@@ -45,26 +45,16 @@ void triangle(int t0[], int t1[], int t2[], TGAImage &image, TGAColor color) {
     if(t0[1]>t2[1]) std::swap(t0, t2);
     if(t1[1]>t2[1]) std::swap(t1, t2);
     int total_height = t2[1]-t0[1];
-    for (int y = t0[1]; y < t1[1]; y++){
-        int segment_height = t1[1] - t0[1] + 1;
-        float alpha = (float)(y - t0[1]) / total_height;
-        float beta = (float)(y - t0[1]) / segment_height; // be careful with divisions by zero
+    for (int i = 0; i < total_height; i++){
+        bool second_half = i > t1[1] - t0[1] || t1[1] == t0[1];
+        int segment_height = second_half ? t2[1] - t1[1] : t1[1] - t0[1];
+        float alpha = (float)i / total_height;
+        float beta = (float)(i - (second_half ? t1[1] - t0[1] : 0)) / segment_height;
         int A = t0[0] + (t2[0] - t0[0]) * alpha;
-        int B = t0[0] + (t1[0] - t0[0]) * beta;
+        int B = second_half ? t1[0] + (t2[0] - t1[0]) * beta : t0[0] + (t1[0]-t0[0])*beta;
         if (A>B) std::swap(A, B);
         for (int j=A; j<=B; j++) {
-            image.set(j, y, color);
-        }
-    }
-    for (int y = t1[1]; y < t2[1]; y++){
-        int segment_height = t2[1] - t1[1] + 1;
-        float alpha = (float)(y - t0[1]) / total_height;
-        float beta = (float)(y - t1[1]) / segment_height; // be careful with divisions by zero
-        int A = t0[0] + (t2[0] - t0[0]) * alpha;
-        int B = t1[0] + (t2[0] - t1[0]) * beta;
-        if (A>B) std::swap(A, B);
-        for (int j=A; j<=B; j++) {
-            image.set(j, y, color);
+            image.set(j, t0[1]+i, color);
         }
     }
 }

@@ -1,13 +1,16 @@
 #include <vector>
 #include <cmath>
 #include "common/tgaimage.h"
+#include "common/model.h"
+#include "common/geometry.h"
 #include <iostream>
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor green = TGAColor(0,   255, 0,   255);
-const int width  = 200;
-const int height = 200;
+Model *model = NULL;
+const int width  = 800;
+const int height = 800;
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
     bool steep = false;
@@ -77,17 +80,44 @@ void triangle(int pts[3][2], TGAImage &image, TGAColor color) {
 }
 
 int main(int argc, char** argv) {
+    if (2==argc) {
+        model = new Model(argv[1]);
+    } else {
+        model = new Model("obj/african_head.obj");
+    }
     TGAImage image(width, height, TGAImage::RGB);
+    Vec3f light_dir(0,0,-1);
 
-    int t0[3][2] = {{10, 70},   {50, 160},  {70, 80}};
-    int t1[3][2] = {{180, 50},  {150, 1},   {70, 180}};
-    int t2[3][2] = {{180, 150}, {120, 160}, {130, 180}};
-
-    triangle(t0, image, red);
-    triangle(t1, image, white);
-    triangle(t2, image, green);
-
-    image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-    image.write_tga_file("output.tga");
-    return 0;
+    for (int i=0; i<model->nfaces(); i++) {
+        std::vector<int> face = model->face(i);
+        int screen_coords[3][2];
+        Vec3f world_coords[3];
+        for (int j=0; j<3; j++) {
+            Vec3f v = model->vert(face[j]);
+            screen_coords[j][0] = (v.x+1.)*width/2.;
+            screen_coords[j][1] = (v.y+1.)*height/2.;
+            world_coords[j] = v;
+        }
+        Vec3f n = (world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0]); // ^应该是叉乘
+        n.normalize();
+        float intensity = n*light_dir; // *应该是点乘
+        if (intensity>0) {
+            triangle(screen_coords, image, TGAColor(intensity*255, intensity*255, intensity*255, 255));
+        }
+    }
+    // for (int i=0; i<model->nfaces(); i++) {
+    //     std::vector<int> face = model->face(i);
+    //     int screen_coords[3][2];
+    //     for (int j=0; j<3; j++) {
+    //         Vec3f world_coords = model->vert(face[j]);
+    //         screen_coords[j][0] = (world_coords.x+1.)*width/2.;
+    //         screen_coords[j][1] = (world_coords.y+1.)*height/2.;
+    //     }
+    //     triangle(screen_coords, image, TGAColor(rand()%255, rand()%255, rand()%255, 255));
+    // }
+    // Fill them with a random color
+        image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
+        image.write_tga_file("output.tga");
+        delete model;
+        return 0;
 }

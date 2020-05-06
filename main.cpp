@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
             triangle(screen_coords[0], screen_coords[1], screen_coords[2], intensity[0], intensity[1], intensity[2], image, zbuffer);
         }
         image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
-        image.write_tga_file("output.tga");
+        image.write_tga_file("tempOutPut.tga");
     }
 
     { // dump z-buffer (debugging purposes only)

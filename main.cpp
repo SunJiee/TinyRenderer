@@ -55,9 +55,13 @@ void triangle(Vec3i t0, Vec3i t1, Vec3i t2, float ity0, float ity1, float ity2, 
         float alpha = (float)i/total_height;
         float beta  = (float)(i-(second_half ? t1.y-t0.y : 0))/segment_height; // be careful: with above conditions no division by zero here
         Vec3i A    =               t0  + Vec3f(t2-t0  )*alpha;
-        Vec3i B    = second_half ? t1  + Vec3f(t2-t1  )*beta : t0  + Vec3f(t1-t0  )*beta;
+        Vec3i B = second_half ? t1 + Vec3f(t2 - t1) * beta
+                              : t0 + Vec3f(t1 - t0) * beta;
+
         float ityA =               ity0 +   (ity2-ity0)*alpha;
-        float ityB = second_half ? ity1 +   (ity2-ity1)*beta : ity0 +   (ity1-ity0)*beta;
+        float ityB = second_half ? ity1 + (ity2 - ity1) * beta
+                                 : ity0 + (ity1 - ity0) * beta;
+
         if (A.x>B.x) { std::swap(A, B); std::swap(ityA, ityB); }
         for (int j=A.x; j<=B.x; j++) {
             float phi = B.x==A.x ? 1. : (float)(j-A.x)/(B.x-A.x);
@@ -91,11 +95,11 @@ int main(int argc, char** argv) {
         Matrix ViewPort   = viewport(width/8, height/8, width*3/4, height*3/4);
         Projection[3][2] = -1.f/(eye-center).norm();
 
-        std::cerr << ModelView << std::endl;
-        std::cerr << Projection << std::endl;
-        std::cerr << ViewPort << std::endl;
+        // std::cerr << ModelView << std::endl;
+        // std::cerr << Projection << std::endl;
+        // std::cerr << ViewPort << std::endl;
         Matrix z = (ViewPort*Projection*ModelView);
-        std::cerr << z << std::endl;
+        // std::cerr << z << std::endl;
 
         TGAImage image(width, height, TGAImage::RGB);
         for (int i=0; i<model->nfaces(); i++) {
